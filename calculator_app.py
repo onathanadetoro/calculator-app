@@ -17,8 +17,9 @@ import streamlit as st
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+from PIL import Image
 
-# --- Core Logic Functions (Preserved Architecture) ---
+# --- Core Logic Functions ---
 
 def basic_calculator(op):
     st.subheader(f"Mode: {op}")
@@ -42,18 +43,16 @@ def scientific_functions():
         ["sin(x)", "cos(x)", "tan(x)", "√x", "x^y", "log(x)", "log10(x)", "log2(x)", "factorial(x)", "GCD", "LCM"]
     )
     x = st.number_input("Enter x:", value=0.0)
-
     y = 0.0
     if func in ["x^y", "GCD", "LCM"]:
         y = st.number_input("Enter y:", value=0.0)
-
     if st.button("Calculate 💻🧮"):
         try:
             if func == "sin(x)": res = math.sin(math.radians(x))
             elif func == "cos(x)": res = math.cos(math.radians(x))
             elif func == "tan(x)": res = math.tan(math.radians(x))
-            elif func == "√x": res = math.sqrt(x) if x >= 0 else "⚠️ Error: Negative"
-            elif func == "log(x)": res = math.log(x) if x > 0 else "⚠️ Error: x <= 0"
+            elif func == "√x": res = math.sqrt(x) if x >= 0 else "⚠️ Error"
+            elif func == "log(x)": res = math.log(x) if x > 0 else "⚠️ Error"
             elif func == "log10(x)": res = math.log10(x)
             elif func == "log2(x)": res = math.log2(x)
             elif func == "factorial(x)": res = math.factorial(int(x))
@@ -61,8 +60,7 @@ def scientific_functions():
             elif func == "LCM": res = math.lcm(int(x), int(y))
             elif func == "x^y": res = x ** y
             st.success(f"✅ Result: {res}")
-        except Exception as e:
-            st.error(f"Error: {e}")
+        except Exception as e: st.error(f"Error: {e}")
 
 def financial_calculator():
     st.subheader("💰 Financial Calculator")
@@ -70,70 +68,57 @@ def financial_calculator():
     p = st.number_input("Principal ₦:", min_value=0.0, step=100.0)
     r = st.number_input("Rate %:", min_value=0.0, step=0.1)
     t = st.number_input("Time (yrs):", min_value=0.0, step=1.0)
-
     if st.button("Calculate 💻🧮"):
         if kind == "Simple Interest":
-            si = (p * r * t) / 100
-            st.success(f"💰 SI = ₦{si}, Total = ₦{p + si}")
+            res = (p * r * t) / 100
+            st.success(f"💰 SI = ₦{res}, Total = ₦{p + res}")
         else:
-            ci = p * ((1 + r / 100) ** t) - p
-            st.success(f"💰 CI = ₦{ci:.2f}, Total = ₦{p + ci:.2f}")
-
-            if t > 0:
-                years = np.arange(1, int(t) + 1)
-                values = p * (1 + r / 100) ** years
-                fig, ax = plt.subplots()
-                ax.plot(years, values, marker='o', color='green')
-                ax.set_title("📊 Compound Interest Growth")
-                ax.set_xlabel("Years")
-                ax.set_ylabel("Total Amount ₦")
-                ax.grid(True)
-                st.pyplot(fig)
+            res = p * ((1 + r / 100) ** t) - p
+            st.success(f"💰 CI = ₦{res:.2f}, Total = ₦{p + res:.2f}")
 
 def plot_function():
     st.subheader("📊 Plot a Function")
     formula = st.text_input("f(x) = ", placeholder="Example: x**2, sin(x)")
     if st.button("Plot"):
         if formula:
-            x = np.linspace(-10, 10, 500)
+            x_vals = np.linspace(-10, 10, 500)
             try:
-                y = eval(formula, {"x": x, "sin": np.sin, "cos": np.cos, "exp": np.exp, "sqrt": np.sqrt})
+                y_vals = eval(formula, {"x": x_vals, "sin": np.sin, "cos": np.cos, "exp": np.exp, "sqrt": np.sqrt})
                 fig, ax = plt.subplots()
-                ax.plot(x, y)
+                ax.plot(x_vals, y_vals)
                 ax.set_title(f"📈 Graph of y = {formula}")
                 ax.grid(True)
                 st.pyplot(fig)
-            except Exception as e:
-                st.error(f"⚠️ Error in function: {e}")
+            except Exception as e: st.error(f"⚠️ Error in function: {e}")
 
 def circle():
     st.subheader("🔘 Circle Properties")
     mode = st.selectbox("Property:", ["Circumference", "Area"])
     radius = st.number_input("Enter radius:", min_value=0.0)
     if st.button("Calculate 💻🧮"):
-        if mode == "Circumference":
-            res = 2 * radius * math.pi
-        else:
-            res = math.pi * (radius ** 2)
+        if mode == "Circumference": res = 2 * radius * math.pi
+        else: res = math.pi * (radius ** 2)
         st.success(f"✅ {mode}: {res}")
+
+def image_viewer():
+    st.subheader("🖼️ Image Viewer")
+    uploaded_file = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"])
+    if uploaded_file is not None:
+        image = Image.open(uploaded_file)
+        st.image(image, caption='Uploaded Image', use_container_width=True)
 
 def main():
     st.title("Multi-Purpose Calculator 🚀")
-    choice = st.sidebar.selectbox("Select Calculator:",
-        ['Choose...', '➕ Add', '➖ Subtract', '✖️ Multiply', '➗ Divide',
-         '🧪 Scientific Functions', '💰 Financial Calculator', '📊 Plot a Function', '🔘 Circle'])
-    if choice in ['➕ Add', '➖ Subtract', '✖️ Multiply', '➗ Divide']:
-        basic_calculator(choice)
-    elif choice == '🧪 Scientific Functions':
-        scientific_functions()
-    elif choice == '💰 Financial Calculator':
-        financial_calculator()
-    elif choice == '📊 Plot a Function':
-        plot_function()
-    elif choice == '🔘 Circle':
-        circle()
-    else:
-        st.info("Welcome! Please select an option from the sidebar to begin.")
+    choice = st.sidebar.selectbox("Select Mode:",
+        ['Choose...', '➕ Basic Add/Sub', '🧪 Scientific', '💰 Financial', '📊 Plot', '🔘 Circle', '🖼️ View Image'])
+
+    if choice == '➕ Basic Add/Sub': basic_calculator('➕ Add')
+    elif choice == '🧪 Scientific': scientific_functions()
+    elif choice == '💰 Financial': financial_calculator()
+    elif choice == '📊 Plot': plot_function()
+    elif choice == '🔘 Circle': circle()
+    elif choice == '🖼️ View Image': image_viewer()
+    else: st.info("Welcome! Please select an option from the sidebar to begin.")
 
 if __name__ == "__main__":
     main()
