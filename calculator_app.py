@@ -134,6 +134,6 @@ def main():
         circle()
     else:
         st.info("Welcome! Please select an option from the sidebar to begin.")
-# 
-# if __name__ == "__main__":
-#     main()
+
+if __name__ == "__main__":
+    main()
